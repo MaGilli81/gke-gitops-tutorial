@@ -10,6 +10,25 @@ steps:
 #   env:
 #   - 'CLOUDSDK_COMPUTE_REGION=us-central1'
 #   - 'CLOUDSDK_CONTAINER_CLUSTER=hello-cloudbuild'
+
+- name: gcr.io/k8s-skaffold/skaffold
+  args:
+    - skaffold
+    - build
+    - '--interactive=false'
+    - '--file-output=~/artifacts.json'
+    - '--push=true'
+
+- name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  entrypoint: gcloud
+  args:
+      [
+       "deploy", "releases", "create", "rel-${SHORT_SHA}",
+       "--delivery-pipeline", "hello-cloudbuild-delivery-pipeline",
+       "--region", "us-central1",
+       "--annotations", "commitId=${REVISION_ID}",
+       "--build-artifacts", "~/artifacts.json"
+      ]
 # - name: gcr.io/google.com/cloudsdktool/cloud-sdk
 #   entrypoint: gcloud
 #   args:
@@ -20,23 +39,6 @@ steps:
 #       "--annotations", "commitId=${REVISION_ID}",
 #       "--images", "us-central1-docker.pkg.dev/GOOGLE_CLOUD_PROJECT/my-repository/hello-cloudbuild:COMMIT_SHA"
 #     ]
-- name: gcr.io/k8s-skaffold/skaffold
-  args:
-    - skaffold
-    - build
-    - '--interactive=false'
-    - '--file-output=/workspace/artifacts.json'
-
-- name: gcr.io/google.com/cloudsdktool/cloud-sdk
-  entrypoint: gcloud
-  args:
-      [
-       "deploy", "releases", "create", "rel-${SHORT_SHA}",
-       "--delivery-pipeline", "hello-cloudbuild-delivery-pipeline",
-       "--region", "us-central1",
-       "--annotations", "commitId=${REVISION_ID}",
-       "--build-artifacts", "/workspace/artifacts.json"
-      ]
 # This step copies the applied manifest to the production branch
 # The COMMIT_SHA variable is automatically
 # replaced by Cloud Build.
