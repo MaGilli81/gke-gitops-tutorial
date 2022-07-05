@@ -1,34 +1,51 @@
 steps:
-# This step deploys the new version of our container image
-# in the hello-cloudbuild Kubernetes Engine cluster.
-# - name: 'gcr.io/cloud-builders/kubectl'
-#   id: Deploy
-#   args:
-#   - 'apply'
-#   - '-f'
-#   - 'kubernetes.yaml'
-#   env:
-#   - 'CLOUDSDK_COMPUTE_REGION=us-central1'
-#   - 'CLOUDSDK_CONTAINER_CLUSTER=hello-cloudbuild'
-
 - name: gcr.io/k8s-skaffold/skaffold
   args:
     - skaffold
     - build
     - '--interactive=false'
-    - '--file-output=~/artifacts.json'
-    - '--push=true'
-
+    - '--file-output=/workspace/artifacts.json'
 - name: gcr.io/google.com/cloudsdktool/cloud-sdk
   entrypoint: gcloud
   args:
-      [
-       "deploy", "releases", "create", "rel-${SHORT_SHA}",
-       "--delivery-pipeline", "hello-cloudbuild-delivery-pipeline",
-       "--region", "us-central1",
-       "--annotations", "commitId=${REVISION_ID}",
-       "--build-artifacts", "~/artifacts.json"
-      ]
+    [
+      "deploy", "releases", "create", "rel-${SHORT_SHA}",
+      "--delivery-pipeline", "hello-cloudbuild-delivery-pipeline",
+      "--region", "us-central1",
+      "--annotations", "commitId=${REVISION_ID}",
+      "--build-artifacts", "/workspace/artifacts.json"
+    ]
+# steps:
+# # This step deploys the new version of our container image
+# # in the hello-cloudbuild Kubernetes Engine cluster.
+# # - name: 'gcr.io/cloud-builders/kubectl'
+# #   id: Deploy
+# #   args:
+# #   - 'apply'
+# #   - '-f'
+# #   - 'kubernetes.yaml'
+# #   env:
+# #   - 'CLOUDSDK_COMPUTE_REGION=us-central1'
+# #   - 'CLOUDSDK_CONTAINER_CLUSTER=hello-cloudbuild'
+
+# - name: gcr.io/k8s-skaffold/skaffold
+#   args:
+#     - skaffold
+#     - build
+#     - '--interactive=false'
+#     - '--file-output=~/artifacts.json'
+#     - '--push=true'
+
+# - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+#   entrypoint: gcloud
+#   args:
+#       [
+#        "deploy", "releases", "create", "rel-${SHORT_SHA}",
+#        "--delivery-pipeline", "hello-cloudbuild-delivery-pipeline",
+#        "--region", "us-central1",
+#        "--annotations", "commitId=${REVISION_ID}",
+#        "--build-artifacts", "~/artifacts.json"
+#       ]
 # - name: gcr.io/google.com/cloudsdktool/cloud-sdk
 #   entrypoint: gcloud
 #   args:
